@@ -1,0 +1,47 @@
+function [] = otsu_weight(img)
+
+p = imhist(img);
+p = p / (m * n);
+
+for i = 1:256
+    muI(i) = (i - 1) * p(i);
+end
+
+% Otsu
+for k = 1:256
+    mu1 = 0; mu2 = 0;
+    w1(k) = sum(p(1:k));
+    w2(k) = sum(p(k+1 : 256));
+    
+    for i = 1 : k
+        if w1(k) ~= 0
+            mu1 = mu1 + ((i - 1) * p(i) / w1(k));
+        end
+    end
+    mu1_k(k) = mu1;
+%     if w1(k+1) ~= 0
+%         mu1_k(k+1) = sum(((0 : k) .* p(1 : k+1) / w1(k+1)));
+%     end
+    
+    for i = k + 1 : 256
+        if w2(k) ~= 0
+            mu2 = mu2 + ((i - 1) * p(i) / w2(k));
+        end
+    end
+    mu2_k(k) = mu2;
+%     if w2(k+1) ~= 0
+%         mu2_k(k) = sum(((k+1 : 255) .* p(k+2 : 256) / w2(k+1)));
+%     end
+    
+end
+
+sigma = (w1 .* power(mu1_k, 2)) + (w2 .* power(mu2_k, 2));
+% sigma = W * ((w1 .* power(mu1_k, 2)) + (w2 .* power(mu2_k, 2)));
+% 加权值 W
+sigam_weight1 = (1 - p') .* ((w1 .* power(mu1_k, 2)) + (w2 .* power(mu2_k, 2)));
+
+[sigma_max, index] = max(sigma);
+[sigma_weight1_max, index_weight1] = max(sigam_weight1);
+
+imgbw1 = imbinarize(image, index);
+imgbw2 = imbinarize(image, index_weight1);
